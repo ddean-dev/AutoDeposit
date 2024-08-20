@@ -1,12 +1,10 @@
-package-as: WowUp
+package-as: NibTweaks
 enable-toc-creation: yes
 
 ignore:
     - .github
     - .gitignore
-    - .previews
     - README.md
-    - AddonManagers.md
 
 externals:
     libs/LibStub: https://repos.wowace.com/wow/libstub/trunk
