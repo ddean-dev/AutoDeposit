@@ -4,13 +4,13 @@ local ADDON_LOADED = "ADDON_LOADED"
 local MERCHANT_SHOW = "MERCHANT_SHOW"
 local SPELL_PUSHED_TO_ACTIONBAR = "SPELL_PUSHED_TO_ACTIONBAR"
 
-function NibTweaks:OnEvent(event, ...)
-	if event == ADDON_LOADED and #arg >= 1 and arg[1] == "NibTweaks" then
+function NibTweaks:OnEvent(event, arg1, arg2)
+	if event == ADDON_LOADED and arg1 == "NibTweaks" then
 		self:Init()
 	elseif event == MERCHANT_SHOW then
 		self:CleanupInventory()
 	elseif event == SPELL_PUSHED_TO_ACTIONBAR then
-		self:ClearSlot(arg[2])
+		self:ClearSlot(arg2)
 	end
 end
 
