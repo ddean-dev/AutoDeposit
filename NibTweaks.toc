@@ -6,4 +6,4 @@
 
 libs/LibStub/LibStub.lua
 
-NibTweaks.lua
+main.lua
