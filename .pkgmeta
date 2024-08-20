@@ -1,5 +1,4 @@
 package-as: NibTweaks
-enable-toc-creation: yes
 
 ignore:
     - .github
