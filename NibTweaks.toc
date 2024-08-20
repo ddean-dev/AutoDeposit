@@ -1,8 +1,8 @@
 ## Title: NibTweaks
+## Author: Nibrodooh
 ## Interface: 110002
 ## Version: @project-version@
 ## DefaultState: enabled
-## Author: Nibrodooh
 
 libs/LibStub/LibStub.lua
 

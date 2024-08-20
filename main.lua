@@ -25,6 +25,7 @@ function NibTweaks:Init()
 end
 
 function NibTweaks:CleanupInventory()
+	--Sell Junk
 	if C_MerchantFrame.IsSellAllJunkEnabled() and not C_Container.GetBackpackSellJunkDisabled() then
 		local qty = C_MerchantFrame.GetNumJunkItems()
 		if qty > 0 then
@@ -32,6 +33,7 @@ function NibTweaks:CleanupInventory()
 			C_MerchantFrame.SellAllJunkItems()
 		end
 	end
+	--Repair
 	if CanMerchantRepair() then
 		local cost, needed = GetRepairAllCost()
 		if needed then
