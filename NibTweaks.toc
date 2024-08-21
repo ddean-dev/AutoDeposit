@@ -3,7 +3,7 @@
 ## Interface: 110002
 ## Version: @project-version@
 ## DefaultState: enabled
-
-libs/LibStub/LibStub.lua
+## SavedVariables: NibTweaksSettings
+## SavedVariablesPerCharacter: NibTweaksCharacterSettings
 
 main.lua

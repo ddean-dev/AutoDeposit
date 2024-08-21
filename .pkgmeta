@@ -4,6 +4,3 @@ ignore:
     - .github
     - .gitignore
     - README.md
-
-externals:
-    libs/LibStub: https://repos.wowace.com/wow/libstub/trunk
