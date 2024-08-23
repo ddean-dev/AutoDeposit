@@ -1,6 +1,6 @@
 --Saved Variables
-NibTweaksSettings = {}
-NibTweaksCharacterSettings = {}
+AutoDepositSettings = {}
+AutoDepositCharacterSettings = {}
 
 --API Events
 local ADDON_LOADED = "ADDON_LOADED"
@@ -17,9 +17,9 @@ local REPAIR_ALL = "RepairAll"
 local REPAIR_GUILD = "RepairGuild"
 local DEPOSIT_REAGENTS = "DepositReagents"
 
-NibTweaks = CreateFrame("Frame")
+AutoDeposit = CreateFrame("Frame")
 
-function NibTweaks:Init()
+function AutoDeposit:Init()
 	--Set tooltip to cursor
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", function(s, p)
 		s:SetOwner(p, "ANCHOR_CURSOR")
@@ -31,10 +31,10 @@ function NibTweaks:Init()
 
 	--Account Settings
 	local targetGold = Settings.RegisterAddOnSetting(
-		NibTweaks.SettingsCategory,
-		"NibTweaks_" .. TARGET_GOLD,
+		AutoDeposit.SettingsCategory,
+		"AutoDeposit_" .. TARGET_GOLD,
 		TARGET_GOLD,
-		NibTweaksSettings,
+		AutoDepositSettings,
 		"number",
 		"Target Gold",
 		1000
@@ -53,42 +53,42 @@ function NibTweaks:Init()
 		return container:GetData()
 	end
 	Settings.CreateDropdown(
-		NibTweaks.SettingsCategory,
+		AutoDeposit.SettingsCategory,
 		targetGold,
 		targetGoldOptions,
 		"How much gold to leave in the character bag when automatically depositing to and withdrawing from the Warband Bank"
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_GOLD,
 		"Automatically Deposit Gold",
 		"Automatically attempts to deposit character gold in excess of the 'Target Gold' into the Warband Bank.",
 		true
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		WITHDRAW_GOLD,
 		"Automatically Withdraw Gold",
 		"Automatically attempts to withdraw gold from the Warband Bank to reach the set 'Target Gold'.",
 		true
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		REPAIR_ALL,
 		"Automatically Repair All Items",
 		"Automatically repair all items when interacting with vendors with repair capability.",
 		true
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		REPAIR_GUILD,
 		"Guild Repair",
 		"Use funds from the guild bank when automatically repairing.",
 		true
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		SELL_JUNK,
 		"Automatically Sell Junk",
 		"Automatically sells all junk when interacting with vendors.",
 		true
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_REAGENTS,
 		"Automatically Deposit Reagents",
 		"Automatically deposits reagents when opening the bank.",
@@ -97,10 +97,10 @@ function NibTweaks:Init()
 
 	--Character Settings
 	local characterTargetGold = Settings.RegisterAddOnSetting(
-		NibTweaks.SettingsCategory,
-		"NibTweaks_Character_" .. TARGET_GOLD,
+		AutoDeposit.SettingsCategory,
+		"AutoDeposit_Character_" .. TARGET_GOLD,
 		TARGET_GOLD,
-		NibTweaksCharacterSettings,
+		AutoDepositCharacterSettings,
 		"number",
 		"Character Gold Target",
 		-1
@@ -120,42 +120,42 @@ function NibTweaks:Init()
 		return container:GetData()
 	end
 	Settings.CreateDropdown(
-		NibTweaks.SettingsCategory,
+		AutoDeposit.SettingsCategory,
 		characterTargetGold,
 		characterTargetGoldOptions,
 		"A character specific override for the 'Gold Target' setting."
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_GOLD,
 		"Character Deposit Gold",
 		"A character specific override for the 'Automatically Deposit Gold' setting.",
 		false
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		WITHDRAW_GOLD,
 		"Character Withdraw Gold",
 		"A character specific override for the 'Automatically Withdraw Gold' setting.",
 		false
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		REPAIR_ALL,
 		"Character Repair All Items",
 		"A character specific override for the 'Repair All Items' setting.",
 		false
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		REPAIR_GUILD,
 		"Character Guild Repair",
 		"A character specific override for the 'Guild Repair' setting.",
 		false
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		SELL_JUNK,
 		"Character Sell Junk",
 		"A character specific override for the 'Automatically Sell Junk' setting.",
 		false
 	)
-	NibTweaks:AddBooleanSetting(
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_REAGENTS,
 		"Character Deposit Reagents",
 		"A character specific override for  the `Automatically Deposit Reagents` setting.",
@@ -163,8 +163,8 @@ function NibTweaks:Init()
 	)
 end
 
-function NibTweaks:OnEvent(event, arg1, arg2)
-	if event == ADDON_LOADED and arg1 == "NibTweaks" then
+function AutoDeposit:OnEvent(event, arg1, arg2)
+	if event == ADDON_LOADED and arg1 == "AutoDeposit" then
 		self:Init()
 	elseif event == MERCHANT_SHOW then
 		self:SellJunk()
@@ -172,21 +172,21 @@ function NibTweaks:OnEvent(event, arg1, arg2)
 	elseif event == SPELL_PUSHED_TO_ACTIONBAR then
 		self:ClearSlot(arg2)
 	elseif event == BANKFRAME_OPENED then
-		NibTweaks:NormalizeGold()
-		NibTweaks:DepositReagents()
+		AutoDeposit:NormalizeGold()
+		AutoDeposit:DepositReagents()
 	end
 end
 
-function NibTweaks:GetGoldTarget()
-	if NibTweaksCharacterSettings[TARGET_GOLD] == -1 then
-		return NibTweaksSettings[TARGET_GOLD]
+function AutoDeposit:GetGoldTarget()
+	if AutoDepositCharacterSettings[TARGET_GOLD] == -1 then
+		return AutoDepositSettings[TARGET_GOLD]
 	end
-	return NibTweaksCharacterSettings[TARGET_GOLD]
+	return AutoDepositCharacterSettings[TARGET_GOLD]
 end
 
-function NibTweaks:SellJunk()
+function AutoDeposit:SellJunk()
 	if
-		NibTweaks:GetBooleanSetting(SELL_JUNK)
+		AutoDeposit:GetBooleanSetting(SELL_JUNK)
 		and C_MerchantFrame.IsSellAllJunkEnabled()
 		and not C_Container.GetBackpackSellJunkDisabled()
 	then
@@ -198,36 +198,36 @@ function NibTweaks:SellJunk()
 	end
 end
 
-function NibTweaks:Repair()
-	if NibTweaks:GetBooleanSetting(REPAIR_ALL) and CanMerchantRepair() then
+function AutoDeposit:Repair()
+	if AutoDeposit:GetBooleanSetting(REPAIR_ALL) and CanMerchantRepair() then
 		local cost, needed = GetRepairAllCost()
 		if needed then
 			DEFAULT_CHAT_FRAME:AddMessage("Repairing all items for " .. C_CurrencyInfo.GetCoinTextureString(cost))
-			RepairAllItems(NibTweaks:GetBooleanSetting(REPAIR_GUILD) and CanGuildBankRepair())
+			RepairAllItems(AutoDeposit:GetBooleanSetting(REPAIR_GUILD) and CanGuildBankRepair())
 		end
 	end
 end
 
-function NibTweaks:DepositReagents()
-	if IsReagentBankUnlocked() and NibTweaks:GetBooleanSetting(DEPOSIT_REAGENTS) then
+function AutoDeposit:DepositReagents()
+	if IsReagentBankUnlocked() and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS) then
 		DEFAULT_CHAT_FRAME:AddMessage("Depositing all reagents")
 		DepositReagentBank()
 	end
 end
 
-function NibTweaks:NormalizeGold()
+function AutoDeposit:NormalizeGold()
 	local bank = C_Bank.FetchDepositedMoney(2)
-	local diff = (NibTweaks:GetGoldTarget() * 10000) - GetMoney()
-	if diff > 0 and bank > diff and NibTweaks:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
+	local diff = (AutoDeposit:GetGoldTarget() * 10000) - GetMoney()
+	if diff > 0 and bank > diff and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
 		C_Bank.WithdrawMoney(2, diff)
-	elseif diff > 0 and NibTweaks:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
+	elseif diff > 0 and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
 		C_Bank.WithdrawMoney(2, bank)
-	elseif diff < 0 and NibTweaks:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanWithdrawMoney(2) then
+	elseif diff < 0 and AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanWithdrawMoney(2) then
 		C_Bank.DepositMoney(2, -diff)
 	end
 end
 
-function NibTweaks:ClearSlot(slotIndex)
+function AutoDeposit:ClearSlot(slotIndex)
 	if not InCombatLockdown() then
 		ClearCursor()
 		PickupAction(slotIndex)
@@ -235,25 +235,25 @@ function NibTweaks:ClearSlot(slotIndex)
 	end
 end
 
-function NibTweaks:AddBooleanSetting(setting_id, text, tooltip, global, default)
+function AutoDeposit:AddBooleanSetting(setting_id, text, tooltip, global, default)
 	local setting
 	if global then
 		setting = Settings.RegisterAddOnSetting(
-			NibTweaks.SettingsCategory,
-			"NibTweaks_" .. setting_id,
+			AutoDeposit.SettingsCategory,
+			"AutoDeposit_" .. setting_id,
 			setting_id,
-			NibTweaksSettings,
+			AutoDepositSettings,
 			"boolean",
 			text,
 			default or false
 		)
-		Settings.CreateCheckbox(NibTweaks.SettingsCategory, setting, tooltip)
+		Settings.CreateCheckbox(AutoDeposit.SettingsCategory, setting, tooltip)
 	else
 		setting = Settings.RegisterAddOnSetting(
-			NibTweaks.SettingsCategory,
-			"NibTweaks_Character_" .. setting_id,
+			AutoDeposit.SettingsCategory,
+			"AutoDeposit_Character_" .. setting_id,
 			setting_id,
-			NibTweaksCharacterSettings,
+			AutoDepositCharacterSettings,
 			"number",
 			text,
 			0
@@ -265,24 +265,24 @@ function NibTweaks:AddBooleanSetting(setting_id, text, tooltip, global, default)
 			container:Add(2, "Disabled")
 			return container:GetData()
 		end
-		Settings.CreateDropdown(NibTweaks.SettingsCategory, setting, trinary, tooltip)
+		Settings.CreateDropdown(AutoDeposit.SettingsCategory, setting, trinary, tooltip)
 	end
 	return setting
 end
 
-function NibTweaks:GetBooleanSetting(id)
-	if NibTweaksCharacterSettings[id] == 1 then
+function AutoDeposit:GetBooleanSetting(id)
+	if AutoDepositCharacterSettings[id] == 1 then
 		return true
-	elseif NibTweaksCharacterSettings[id] == 2 then
+	elseif AutoDepositCharacterSettings[id] == 2 then
 		return false
 	end
-	return NibTweaksSettings[id] or false
+	return AutoDepositSettings[id] or false
 end
 
-NibTweaks:RegisterEvent(ADDON_LOADED)
-NibTweaks:RegisterEvent(MERCHANT_SHOW)
-NibTweaks:RegisterEvent(BANKFRAME_OPENED)
-NibTweaks:RegisterEvent(SPELL_PUSHED_TO_ACTIONBAR)
-NibTweaks:SetScript("OnEvent", NibTweaks.OnEvent)
-NibTweaks.SettingsCategory = Settings.RegisterVerticalLayoutCategory("NibTweaks")
-Settings.RegisterAddOnCategory(NibTweaks.SettingsCategory)
+AutoDeposit:RegisterEvent(ADDON_LOADED)
+AutoDeposit:RegisterEvent(MERCHANT_SHOW)
+AutoDeposit:RegisterEvent(BANKFRAME_OPENED)
+AutoDeposit:RegisterEvent(SPELL_PUSHED_TO_ACTIONBAR)
+AutoDeposit:SetScript("OnEvent", AutoDeposit.OnEvent)
+AutoDeposit.SettingsCategory = Settings.RegisterVerticalLayoutCategory("AutoDeposit")
+Settings.RegisterAddOnCategory(AutoDeposit.SettingsCategory)

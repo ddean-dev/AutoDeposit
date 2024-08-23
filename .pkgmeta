@@ -1,4 +1,4 @@
-package-as: NibTweaks
+package-as: AutoDeposit
 
 ignore:
     - .github

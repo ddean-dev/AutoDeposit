@@ -1,6 +1,5 @@
-# NibTweaks
-a small addon of code snippets and the like I use to tweak my World of Warcraft experience with, not recommended for use
-by anyone other then the author, but the repo is public for ease of installing my interface files
+# AutoDeposit
+A World of Warcraft addon for automatically depositing and withdrawing gold from your warband bank.
 
 ## Installation
 Copy the GitHub URL into WoWUp
