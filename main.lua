@@ -20,69 +20,6 @@ local SELL_JUNK = "SellJunk"
 local REPAIR_ALL = "RepairAll"
 local REPAIR_GUILD = "RepairGuild"
 
-function NibTweaks:OnEvent(event, arg1, arg2)
-	if event == ADDON_LOADED and arg1 == "NibTweaks" then
-		self:Init()
-	elseif event == MERCHANT_SHOW then
-		self:CleanupInventory()
-	elseif event == SPELL_PUSHED_TO_ACTIONBAR then
-		self:ClearSlot(arg2)
-	elseif event == BANKFRAME_OPENED then
-		NibTweaks:NormalizeGold()
-	end
-end
-
-function NibTweaks:AddBooleanSetting(setting_id, text, tooltip, global, default)
-	local setting
-	if global then
-		setting = Settings.RegisterAddOnSetting(
-			NibTweaks.SettingsCategory,
-			"NibTweaks_" .. setting_id,
-			setting_id,
-			NibTweaksSettings,
-			"boolean",
-			text,
-			default or false
-		)
-		Settings.CreateCheckbox(NibTweaks.SettingsCategory, setting, tooltip)
-	else
-		setting = Settings.RegisterAddOnSetting(
-			NibTweaks.SettingsCategory,
-			"NibTweaks_Character_" .. setting_id,
-			setting_id,
-			NibTweaksCharacterSettings,
-			"number",
-			text,
-			0
-		)
-		local function trinary()
-			local container = Settings.CreateControlTextContainer()
-			container:Add(0, "Default")
-			container:Add(1, "Enabled")
-			container:Add(2, "Disabled")
-			return container:GetData()
-		end
-		Settings.CreateDropdown(NibTweaks.SettingsCategory, setting, trinary, tooltip)
-	end
-	return setting
-end
-
-function NibTweaks:GetBooleanSetting(id)
-	if NibTweaksCharacterSettings[id] == 1 then
-		return true
-	elseif NibTweaksCharacterSettings[id] == 2 then
-		return false
-	end
-	return NibTweaksSettings[id] or false
-end
-
-function NibTweaks:GetGoldTarget()
-	if NibTweaksCharacterSettings[TARGET_GOLD] == -1 then
-		return NibTweaksSettings[TARGET_GOLD]
-	end
-	return NibTweaksCharacterSettings[TARGET_GOLD]
-end
-
 function NibTweaks:Init()
 	--Set tooltip to cursor
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", function(s, p)
@@ -215,8 +152,27 @@ function NibTweaks:Init()
 	)
 end
 
-function NibTweaks:CleanupInventory()
-	--Sell Junk
+function NibTweaks:OnEvent(event, arg1, arg2)
+	if event == ADDON_LOADED and arg1 == "NibTweaks" then
+		self:Init()
+	elseif event == MERCHANT_SHOW then
+		self:SellJunk()
+		self:Repair()
+	elseif event == SPELL_PUSHED_TO_ACTIONBAR then
+		self:ClearSlot(arg2)
+	elseif event == BANKFRAME_OPENED then
+		NibTweaks:NormalizeGold()
+	end
+end
+
+function NibTweaks:GetGoldTarget()
+	if NibTweaksCharacterSettings[TARGET_GOLD] == -1 then
+		return NibTweaksSettings[TARGET_GOLD]
+	end
+	return NibTweaksCharacterSettings[TARGET_GOLD]
+end
+
+function NibTweaks:SellJunk()
 	if
 		NibTweaks:GetBooleanSetting(SELL_JUNK)
 		and C_MerchantFrame.IsSellAllJunkEnabled()
@@ -228,7 +184,9 @@ function NibTweaks:CleanupInventory()
 			C_MerchantFrame.SellAllJunkItems()
 		end
 	end
-	--Repair
+end
+
+function NibTweaks:Repair()
 	if NibTweaks:GetBooleanSetting(REPAIR_ALL) and CanMerchantRepair() then
 		local cost, needed = GetRepairAllCost()
 		if needed then
@@ -256,6 +214,50 @@ function NibTweaks:ClearSlot(slotIndex)
 		PickupAction(slotIndex)
 		ClearCursor()
 	end
+end
+
+function NibTweaks:AddBooleanSetting(setting_id, text, tooltip, global, default)
+	local setting
+	if global then
+		setting = Settings.RegisterAddOnSetting(
+			NibTweaks.SettingsCategory,
+			"NibTweaks_" .. setting_id,
+			setting_id,
+			NibTweaksSettings,
+			"boolean",
+			text,
+			default or false
+		)
+		Settings.CreateCheckbox(NibTweaks.SettingsCategory, setting, tooltip)
+	else
+		setting = Settings.RegisterAddOnSetting(
+			NibTweaks.SettingsCategory,
+			"NibTweaks_Character_" .. setting_id,
+			setting_id,
+			NibTweaksCharacterSettings,
+			"number",
+			text,
+			0
+		)
+		local function trinary()
+			local container = Settings.CreateControlTextContainer()
+			container:Add(0, "Default")
+			container:Add(1, "Enabled")
+			container:Add(2, "Disabled")
+			return container:GetData()
+		end
+		Settings.CreateDropdown(NibTweaks.SettingsCategory, setting, trinary, tooltip)
+	end
+	return setting
+end
+
+function NibTweaks:GetBooleanSetting(id)
+	if NibTweaksCharacterSettings[id] == 1 then
+		return true
+	elseif NibTweaksCharacterSettings[id] == 2 then
+		return false
+	end
+	return NibTweaksSettings[id] or false
 end
 
 NibTweaks:RegisterEvent(ADDON_LOADED)
