@@ -15,6 +15,7 @@ local WITHDRAW_GOLD = "WithdrawGold"
 local SELL_JUNK = "SellJunk"
 local REPAIR_ALL = "RepairAll"
 local REPAIR_GUILD = "RepairGuild"
+local DEPOSIT_REAGENTS = "DepositReagents"
 
 NibTweaks = CreateFrame("Frame")
 
@@ -87,6 +88,12 @@ function NibTweaks:Init()
 		"Automatically sells all junk when interacting with vendors.",
 		true
 	)
+	NibTweaks:AddBooleanSetting(
+		DEPOSIT_REAGENTS,
+		"Automatically Deposit Reagents",
+		"Automatically deposits reagents when opening the bank.",
+		true
+	)
 
 	--Character Settings
 	local characterTargetGold = Settings.RegisterAddOnSetting(
@@ -148,6 +155,12 @@ function NibTweaks:Init()
 		"A character specific override for the 'Automatically Sell Junk' setting.",
 		false
 	)
+	NibTweaks:AddBooleanSetting(
+		DEPOSIT_REAGENTS,
+		"Character Deposit Reagents",
+		"A character specific override for  the `Automatically Deposit Reagents` setting.",
+		false
+	)
 end
 
 function NibTweaks:OnEvent(event, arg1, arg2)
@@ -160,6 +173,7 @@ function NibTweaks:OnEvent(event, arg1, arg2)
 		self:ClearSlot(arg2)
 	elseif event == BANKFRAME_OPENED then
 		NibTweaks:NormalizeGold()
+		NibTweaks:DepositReagents()
 	end
 end
 
@@ -191,6 +205,13 @@ function NibTweaks:Repair()
 			DEFAULT_CHAT_FRAME:AddMessage("Repairing all items for " .. C_CurrencyInfo.GetCoinTextureString(cost))
 			RepairAllItems(NibTweaks:GetBooleanSetting(REPAIR_GUILD) and CanGuildBankRepair())
 		end
+	end
+end
+
+function NibTweaks:DepositReagents()
+	if IsReagentBankUnlocked() and NibTweaks:GetBooleanSetting(DEPOSIT_REAGENTS) then
+		DEFAULT_CHAT_FRAME:AddMessage("Depositing all reagents")
+		DepositReagentBank()
 	end
 end
 
