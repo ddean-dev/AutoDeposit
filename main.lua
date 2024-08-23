@@ -153,8 +153,6 @@ function NibTweaks:ClearSlot(slotIndex)
 	end
 end
 
-function NibTweaks:OnSettingChanged(setting, value) end
-
 NibTweaks:RegisterEvent(ADDON_LOADED)
 NibTweaks:RegisterEvent(MERCHANT_SHOW)
 NibTweaks:RegisterEvent(BANKFRAME_OPENED)
