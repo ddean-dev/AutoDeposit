@@ -1,7 +1,3 @@
---Frame
-NibTweaks = CreateFrame("Frame")
-NibTweaks.SettingsCategory = Settings.RegisterVerticalLayoutCategory("NibTweaks")
-
 --Saved Variables
 NibTweaksSettings = {}
 NibTweaksCharacterSettings = {}
@@ -19,6 +15,8 @@ local WITHDRAW_GOLD = "WithdrawGold"
 local SELL_JUNK = "SellJunk"
 local REPAIR_ALL = "RepairAll"
 local REPAIR_GUILD = "RepairGuild"
+
+NibTweaks = CreateFrame("Frame")
 
 function NibTweaks:Init()
 	--Set tooltip to cursor
@@ -264,5 +262,6 @@ NibTweaks:RegisterEvent(ADDON_LOADED)
 NibTweaks:RegisterEvent(MERCHANT_SHOW)
 NibTweaks:RegisterEvent(BANKFRAME_OPENED)
 NibTweaks:RegisterEvent(SPELL_PUSHED_TO_ACTIONBAR)
-Settings.RegisterAddOnCategory(NibTweaks.SettingsCategory)
 NibTweaks:SetScript("OnEvent", NibTweaks.OnEvent)
+NibTweaks.SettingsCategory = Settings.RegisterVerticalLayoutCategory("NibTweaks")
+Settings.RegisterAddOnCategory(NibTweaks.SettingsCategory)
