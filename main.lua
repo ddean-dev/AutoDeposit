@@ -27,8 +27,6 @@ function NibTweaks:OnEvent(event, arg1, arg2)
 end
 
 function NibTweaks:Init()
-	print(NibTweaksCharacterSettings)
-
 	--Set tooltip to cursor
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", function(s, p)
 		s:SetOwner(p, "ANCHOR_CURSOR")
@@ -81,6 +79,33 @@ function NibTweaks:Init()
 		normalizeGold,
 		"Automatically transfers gold too and from the Warband bank when opening the bank to maintain a target quantity of gold in the character inventory."
 	)
+	local targetGold = Settings.RegisterAddOnSetting(
+		NibTweaks.SettingsCategory,
+		"NibTweaks_GoldTarget",
+		"goldTarget",
+		NibTweaksCharacterSettings,
+		"number",
+		"Normalize Gold",
+		1000
+	)
+	local function targetGoldOptions()
+		local container = Settings.CreateControlTextContainer()
+		container:Add(0, C_CurrencyInfo.GetCoinTextureString(0))
+		container:Add(10, C_CurrencyInfo.GetCoinTextureString(100000))
+		container:Add(100, C_CurrencyInfo.GetCoinTextureString(1000000))
+		container:Add(1000, C_CurrencyInfo.GetCoinTextureString(10000000))
+		container:Add(10000, C_CurrencyInfo.GetCoinTextureString(100000000))
+		container:Add(100000, C_CurrencyInfo.GetCoinTextureString(1000000000))
+		container:Add(1000000, C_CurrencyInfo.GetCoinTextureString(10000000000))
+		container:Add(10000000, C_CurrencyInfo.GetCoinTextureString(100000000000))
+		return container:GetData()
+	end
+	Settings.CreateDropdown(
+		NibTweaks.SettingsCategory,
+		targetGold,
+		targetGoldOptions,
+		"How much gold to normalize to. This is set per character."
+	)
 end
 
 function NibTweaks:CleanupInventory()
@@ -109,7 +134,7 @@ end
 function NibTweaks:NormalizeGold()
 	if NibTweaksSettings["normalizeGold"] and C_Bank.CanDepositMoney(2) then
 		local bank = C_Bank.FetchDepositedMoney(2)
-		local diff = GOLD_TARGET - GetMoney()
+		local diff = (NibTweaksCharacterSettings["goldTarget"] * 10000) - GetMoney()
 		if diff > 0 and bank > diff then
 			C_Bank.WithdrawMoney(2, diff)
 		elseif diff > 0 then
