@@ -20,15 +20,6 @@ local DEPOSIT_REAGENTS = "DepositReagents"
 AutoDeposit = CreateFrame("Frame")
 
 function AutoDeposit:Init()
-	--Set tooltip to cursor
-	hooksecurefunc("GameTooltip_SetDefaultAnchor", function(s, p)
-		s:SetOwner(p, "ANCHOR_CURSOR")
-	end)
-
-	--Disable Spell Push
-	IconIntroTracker.RegisterEvent = function() end
-	IconIntroTracker:UnregisterEvent("SPELL_PUSHED_TO_ACTIONBAR")
-
 	--Account Settings
 	local targetGold = Settings.RegisterAddOnSetting(
 		AutoDeposit.SettingsCategory,
@@ -227,14 +218,6 @@ function AutoDeposit:NormalizeGold()
 	end
 end
 
-function AutoDeposit:ClearSlot(slotIndex)
-	if not InCombatLockdown() then
-		ClearCursor()
-		PickupAction(slotIndex)
-		ClearCursor()
-	end
-end
-
 function AutoDeposit:AddBooleanSetting(setting_id, text, tooltip, global, default)
 	local setting
 	if global then
@@ -282,7 +265,6 @@ end
 AutoDeposit:RegisterEvent(ADDON_LOADED)
 AutoDeposit:RegisterEvent(MERCHANT_SHOW)
 AutoDeposit:RegisterEvent(BANKFRAME_OPENED)
-AutoDeposit:RegisterEvent(SPELL_PUSHED_TO_ACTIONBAR)
 AutoDeposit:SetScript("OnEvent", AutoDeposit.OnEvent)
 AutoDeposit.SettingsCategory = Settings.RegisterVerticalLayoutCategory("AutoDeposit")
 Settings.RegisterAddOnCategory(AutoDeposit.SettingsCategory)
