@@ -9,6 +9,9 @@ local BANKFRAME_OPENED = "BANKFRAME_OPENED"
 local SPELL_PUSHED_TO_ACTIONBAR = "SPELL_PUSHED_TO_ACTIONBAR"
 
 --Settings
+local PREFIX = "AutoDeposit_"
+local PREFIX_CHARACTER = "AutoDeposit_Character_"
+local CHECKBOX_SUFFIX = "_Checkbox"
 local TARGET_GOLD = "TargetGold"
 local DEPOSIT_GOLD = "DepositGold"
 local WITHDRAW_GOLD = "WithdrawGold"
@@ -21,33 +24,11 @@ AutoDeposit = CreateFrame("Frame")
 
 function AutoDeposit:Init()
 	--Account Settings
-	local targetGold = Settings.RegisterAddOnSetting(
-		AutoDeposit.SettingsCategory,
-		"AutoDeposit_" .. TARGET_GOLD,
+	AutoDeposit:AddGoldSliderSetting(
 		TARGET_GOLD,
-		AutoDepositSettings,
-		"number",
 		"Target Gold",
-		1000
-	)
-	local function targetGoldOptions()
-		local container = Settings.CreateControlTextContainer()
-		container:Add(0, C_CurrencyInfo.GetCoinTextureString(0))
-		container:Add(1, C_CurrencyInfo.GetCoinTextureString(10000))
-		container:Add(10, C_CurrencyInfo.GetCoinTextureString(100000))
-		container:Add(100, C_CurrencyInfo.GetCoinTextureString(1000000))
-		container:Add(1000, C_CurrencyInfo.GetCoinTextureString(10000000))
-		container:Add(10000, C_CurrencyInfo.GetCoinTextureString(100000000))
-		container:Add(100000, C_CurrencyInfo.GetCoinTextureString(1000000000))
-		container:Add(1000000, C_CurrencyInfo.GetCoinTextureString(10000000000))
-		container:Add(10000000, C_CurrencyInfo.GetCoinTextureString(100000000000))
-		return container:GetData()
-	end
-	Settings.CreateDropdown(
-		AutoDeposit.SettingsCategory,
-		targetGold,
-		targetGoldOptions,
-		"How much gold to leave in the character bag when automatically depositing to and withdrawing from the Warband Bank"
+		"How much gold to leave in the character bag when automatically depositing to and withdrawing from the Warband Bank",
+		true
 	)
 	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_GOLD,
@@ -87,34 +68,11 @@ function AutoDeposit:Init()
 	)
 
 	--Character Settings
-	local characterTargetGold = Settings.RegisterAddOnSetting(
-		AutoDeposit.SettingsCategory,
-		"AutoDeposit_Character_" .. TARGET_GOLD,
+	AutoDeposit:AddGoldSliderSetting(
 		TARGET_GOLD,
-		AutoDepositCharacterSettings,
-		"number",
-		"Character Gold Target",
-		-1
-	)
-	local function characterTargetGoldOptions()
-		local container = Settings.CreateControlTextContainer()
-		container:Add(-1, "Default")
-		container:Add(0, C_CurrencyInfo.GetCoinTextureString(0))
-		container:Add(1, C_CurrencyInfo.GetCoinTextureString(10000))
-		container:Add(10, C_CurrencyInfo.GetCoinTextureString(100000))
-		container:Add(100, C_CurrencyInfo.GetCoinTextureString(1000000))
-		container:Add(1000, C_CurrencyInfo.GetCoinTextureString(10000000))
-		container:Add(10000, C_CurrencyInfo.GetCoinTextureString(100000000))
-		container:Add(100000, C_CurrencyInfo.GetCoinTextureString(1000000000))
-		container:Add(1000000, C_CurrencyInfo.GetCoinTextureString(10000000000))
-		container:Add(10000000, C_CurrencyInfo.GetCoinTextureString(100000000000))
-		return container:GetData()
-	end
-	Settings.CreateDropdown(
-		AutoDeposit.SettingsCategory,
-		characterTargetGold,
-		characterTargetGoldOptions,
-		"A character specific override for the 'Gold Target' setting."
+		"Character Target Gold",
+		"A character specific override for the 'Target Gold' setting.",
+		false
 	)
 	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_GOLD,
@@ -169,10 +127,10 @@ function AutoDeposit:OnEvent(event, arg1, arg2)
 end
 
 function AutoDeposit:GetGoldTarget()
-	if AutoDepositCharacterSettings[TARGET_GOLD] == -1 then
-		return AutoDepositSettings[TARGET_GOLD]
+	if AutoDepositCharacterSettings[TARGET_GOLD .. CHECKBOX_SUFFIX] == true then
+		return AutoDeposit:GoldSliderToValue(AutoDepositCharacterSettings[TARGET_GOLD])
 	end
-	return AutoDepositCharacterSettings[TARGET_GOLD]
+	return AutoDeposit:GoldSliderToValue(AutoDepositSettings[TARGET_GOLD])
 end
 
 function AutoDeposit:SellJunk()
@@ -193,7 +151,7 @@ function AutoDeposit:Repair()
 	if AutoDeposit:GetBooleanSetting(REPAIR_ALL) and CanMerchantRepair() then
 		local cost, needed = GetRepairAllCost()
 		if needed then
-			DEFAULT_CHAT_FRAME:AddMessage("Repairing all items for " .. C_CurrencyInfo.GetCoinTextureString(cost))
+			DEFAULT_CHAT_FRAME:AddMessage("Repairing all items for " .. GetMoneyString(cost, true))
 			RepairAllItems(AutoDeposit:GetBooleanSetting(REPAIR_GUILD) and CanGuildBankRepair())
 		end
 	end
@@ -208,12 +166,15 @@ end
 
 function AutoDeposit:NormalizeGold()
 	local bank = C_Bank.FetchDepositedMoney(2)
-	local diff = (AutoDeposit:GetGoldTarget() * 10000) - GetMoney()
+	local diff = AutoDeposit:GetGoldTarget() - GetMoney()
 	if diff > 0 and bank > diff and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
+		DEFAULT_CHAT_FRAME:AddMessage("Withdrawing " .. GetMoneyString(diff, true))
 		C_Bank.WithdrawMoney(2, diff)
 	elseif diff > 0 and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
+		DEFAULT_CHAT_FRAME:AddMessage("Withdrawing " .. GetMoneyString(diff, true))
 		C_Bank.WithdrawMoney(2, bank)
-	elseif diff < 0 and AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanWithdrawMoney(2) then
+	elseif diff < 0 and AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanDepositMoney(2) then
+		DEFAULT_CHAT_FRAME:AddMessage("Depositing " .. GetMoneyString(-diff, true))
 		C_Bank.DepositMoney(2, -diff)
 	end
 end
@@ -223,7 +184,7 @@ function AutoDeposit:AddBooleanSetting(setting_id, text, tooltip, global, defaul
 	if global then
 		setting = Settings.RegisterAddOnSetting(
 			AutoDeposit.SettingsCategory,
-			"AutoDeposit_" .. setting_id,
+			PREFIX .. setting_id,
 			setting_id,
 			AutoDepositSettings,
 			"boolean",
@@ -234,7 +195,7 @@ function AutoDeposit:AddBooleanSetting(setting_id, text, tooltip, global, defaul
 	else
 		setting = Settings.RegisterAddOnSetting(
 			AutoDeposit.SettingsCategory,
-			"AutoDeposit_Character_" .. setting_id,
+			PREFIX_CHARACTER .. setting_id,
 			setting_id,
 			AutoDepositCharacterSettings,
 			"number",
@@ -260,6 +221,67 @@ function AutoDeposit:GetBooleanSetting(id)
 		return false
 	end
 	return AutoDepositSettings[id] or false
+end
+
+function AutoDeposit:AddGoldSliderSetting(setting_id, text, tooltip, global)
+	local db, identifier, template
+	if global then
+		db = AutoDepositSettings
+		identifier = PREFIX .. setting_id
+		template = "SettingsSliderControlTemplate"
+	else
+		db = AutoDepositCharacterSettings
+		identifier = PREFIX_CHARACTER .. setting_id
+		template = "SettingsCheckboxSliderControlTemplate"
+	end
+	local setting =
+		Settings.RegisterAddOnSetting(AutoDeposit.SettingsCategory, identifier, setting_id, db, "number", text, 27)
+	local cbsetting = Settings.RegisterAddOnSetting(
+		AutoDeposit.SettingsCategory,
+		identifier .. CHECKBOX_SUFFIX,
+		setting_id .. CHECKBOX_SUFFIX,
+		db,
+		"boolean",
+		text,
+		false
+	)
+	local data = {
+		setting = setting,
+		name = setting:GetName(),
+		tooltip = tooltip,
+		cbSetting = cbsetting,
+		cbTooltip = tooltip,
+		sliderSetting = setting,
+		sliderOptions = {
+			minValue = -1,
+			maxValue = 63,
+			steps = 64,
+			formatters = {
+				[MinimalSliderWithSteppersMixin.Label.Right] = function(x)
+					return GetMoneyString(AutoDeposit:GoldSliderToValue(x), true)
+				end,
+			},
+		},
+		sliderTooltip = tooltip,
+	}
+	data.options = data.sliderOptions
+	local initializer = Settings.CreateSettingInitializer(template, data)
+	Settings.CreateSliderInitializer(setting, data, tooltip)
+	local layout = SettingsPanel:GetLayout(AutoDeposit.SettingsCategory)
+	layout:AddInitializer(initializer)
+end
+
+function AutoDeposit:GoldSliderToValue(x)
+	if x == -1 then
+		return 0
+	end
+	local power = math.floor(x / 9)
+	local multiplier = (x % 9) + 1
+	local value = 10000 * (10 ^ power) * multiplier
+	if value >= 100000000000 then
+		return 99999999999
+	end
+	return value
 end
 
 AutoDeposit:RegisterEvent(ADDON_LOADED)
