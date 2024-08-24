@@ -5,5 +5,6 @@
 ## DefaultState: enabled
 ## SavedVariables: AutoDepositSettings
 ## SavedVariablesPerCharacter: AutoDepositCharacterSettings
+## X-Curse-Project-ID: 1089693
 
 main.lua
