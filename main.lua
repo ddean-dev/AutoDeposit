@@ -141,7 +141,7 @@ function AutoDeposit:SellJunk()
 	then
 		local qty = C_MerchantFrame.GetNumJunkItems()
 		if qty > 0 then
-			DEFAULT_CHAT_FRAME:AddMessage("Selling " .. tostring(qty) .. " junk items")
+			print("Selling " .. tostring(qty) .. " junk items")
 			C_MerchantFrame.SellAllJunkItems()
 		end
 	end
@@ -151,7 +151,7 @@ function AutoDeposit:Repair()
 	if AutoDeposit:GetBooleanSetting(REPAIR_ALL) and CanMerchantRepair() then
 		local cost, needed = GetRepairAllCost()
 		if needed then
-			DEFAULT_CHAT_FRAME:AddMessage("Repairing all items for " .. GetMoneyString(cost, true))
+			print("Repairing all items for " .. GetMoneyString(cost, true))
 			RepairAllItems(AutoDeposit:GetBooleanSetting(REPAIR_GUILD) and CanGuildBankRepair())
 		end
 	end
@@ -159,7 +159,7 @@ end
 
 function AutoDeposit:DepositReagents()
 	if IsReagentBankUnlocked() and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS) then
-		DEFAULT_CHAT_FRAME:AddMessage("Depositing all reagents")
+		print("Depositing all reagents")
 		DepositReagentBank()
 	end
 end
@@ -168,13 +168,13 @@ function AutoDeposit:NormalizeGold()
 	local bank = C_Bank.FetchDepositedMoney(2)
 	local diff = AutoDeposit:GetGoldTarget() - GetMoney()
 	if diff > 0 and bank > diff and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
-		DEFAULT_CHAT_FRAME:AddMessage("Withdrawing " .. GetMoneyString(diff, true))
+		print("Withdrawing " .. GetMoneyString(diff, true))
 		C_Bank.WithdrawMoney(2, diff)
 	elseif diff > 0 and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
-		DEFAULT_CHAT_FRAME:AddMessage("Withdrawing " .. GetMoneyString(diff, true))
+		print("Withdrawing " .. GetMoneyString(diff, true))
 		C_Bank.WithdrawMoney(2, bank)
 	elseif diff < 0 and AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanDepositMoney(2) then
-		DEFAULT_CHAT_FRAME:AddMessage("Depositing " .. GetMoneyString(-diff, true))
+		print("Depositing " .. GetMoneyString(-diff, true))
 		C_Bank.DepositMoney(2, -diff)
 	end
 end
