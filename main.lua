@@ -13,6 +13,7 @@ local PREFIX = "AutoDeposit_"
 local PREFIX_CHARACTER = "AutoDeposit_Character_"
 local CHECKBOX_SUFFIX = "_Checkbox"
 local TARGET_GOLD = "TargetGold"
+local TARGET_GOLD_RANGE = "TargetGoldRange"
 local DEPOSIT_GOLD = "DepositGold"
 local WITHDRAW_GOLD = "WithdrawGold"
 local SELL_JUNK = "SellJunk"
@@ -28,6 +29,14 @@ function AutoDeposit:Init()
 		TARGET_GOLD,
 		"Target Gold",
 		"How much gold to leave in the character bag when automatically depositing to and withdrawing from the Warband Bank",
+		true,
+		false
+	)
+	AutoDeposit:AddGoldSliderSetting(
+		TARGET_GOLD_RANGE,
+		"Target Range",
+		"If enabled allows any value between 'Target Gold` and the set value to be acceptable, only withdrawing/depositing when outside the set range",
+		true,
 		true
 	)
 	AutoDeposit:AddBooleanSetting(
@@ -72,13 +81,22 @@ function AutoDeposit:Init()
 		TARGET_GOLD,
 		"Character Target Gold",
 		"A character specific override for the 'Target Gold' setting.",
-		false
+		false,
+		true
+	)
+	AutoDeposit:AddGoldSliderSetting(
+		TARGET_GOLD_RANGE,
+		"Character Target Range",
+		"A character specific override for the 'Target Gold' setting.",
+		false,
+		true
 	)
 	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_GOLD,
 		"Character Deposit Gold",
 		"A character specific override for the 'Automatically Deposit Gold' setting.",
-		false
+		false,
+		true
 	)
 	AutoDeposit:AddBooleanSetting(
 		WITHDRAW_GOLD,
@@ -127,10 +145,29 @@ function AutoDeposit:OnEvent(event, arg1, arg2)
 end
 
 function AutoDeposit:GetGoldTarget()
+	-- Get target and range values from global and character settings
+	local target = AutoDeposit:GoldSliderToValue(AutoDepositSettings[TARGET_GOLD])
+	local range = AutoDeposit:GoldSliderToValue(AutoDepositSettings[TARGET_GOLD_RANGE])
 	if AutoDepositCharacterSettings[TARGET_GOLD .. CHECKBOX_SUFFIX] == true then
-		return AutoDeposit:GoldSliderToValue(AutoDepositCharacterSettings[TARGET_GOLD])
+		target = AutoDeposit:GoldSliderToValue(AutoDepositCharacterSettings[TARGET_GOLD])
 	end
-	return AutoDeposit:GoldSliderToValue(AutoDepositSettings[TARGET_GOLD])
+	if AutoDepositCharacterSettings[TARGET_GOLD_RANGE .. CHECKBOX_SUFFIX] == true then
+		range = AutoDeposit:GoldSliderToValue(AutoDepositCharacterSettings[TARGET_GOLD_RANGE])
+	end
+
+	-- If either range enabled return range, otherwise return target for both min and max
+	if
+		AutoDepositSettings[TARGET_GOLD_RANGE .. CHECKBOX_SUFFIX]
+		or AutoDepositCharacterSettings[TARGET_GOLD_RANGE .. CHECKBOX_SUFFIX]
+	then
+		if target > range then
+			return range, target
+		else
+			return target, range
+		end
+	else
+		return target, target
+	end
 end
 
 function AutoDeposit:SellJunk()
@@ -165,17 +202,27 @@ function AutoDeposit:DepositReagents()
 end
 
 function AutoDeposit:NormalizeGold()
+	local bag = GetMoney()
 	local bank = C_Bank.FetchDepositedMoney(2)
-	local diff = AutoDeposit:GetGoldTarget() - GetMoney()
-	if diff > 0 and bank > diff and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
-		print("Withdrawing " .. GetMoneyString(diff, true))
-		C_Bank.WithdrawMoney(2, diff)
-	elseif diff > 0 and AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2) then
-		print("Withdrawing " .. GetMoneyString(diff, true))
-		C_Bank.WithdrawMoney(2, bank)
-	elseif diff < 0 and AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanDepositMoney(2) then
-		print("Depositing " .. GetMoneyString(-diff, true))
-		C_Bank.DepositMoney(2, -diff)
+	local min, max = AutoDeposit:GetGoldTarget()
+	local doDeposit = AutoDeposit:GetBooleanSetting(DEPOSIT_GOLD) and C_Bank.CanDepositMoney(2)
+	local doWithdraw = AutoDeposit:GetBooleanSetting(WITHDRAW_GOLD) and C_Bank.CanWithdrawMoney(2)
+
+	--deposit
+	if doDeposit and bag > max then
+		local dif = bag - max
+		print("Depositing " .. GetMoneyString(dif, true))
+		C_Bank.DepositMoney(2, dif)
+	end
+
+	--withdraw
+	if doWithdraw and bag < min then
+		local dif = min - bag
+		if dif > bank then
+			dif = bank
+		end
+		print("Withdrawing " .. GetMoneyString(dif, true))
+		C_Bank.WithdrawMoney(2, dif)
 	end
 end
 
@@ -223,16 +270,19 @@ function AutoDeposit:GetBooleanSetting(id)
 	return AutoDepositSettings[id] or false
 end
 
-function AutoDeposit:AddGoldSliderSetting(setting_id, text, tooltip, global)
+function AutoDeposit:AddGoldSliderSetting(setting_id, text, tooltip, global, checkbox)
 	local db, identifier, template
 	if global then
 		db = AutoDepositSettings
 		identifier = PREFIX .. setting_id
-		template = "SettingsSliderControlTemplate"
 	else
 		db = AutoDepositCharacterSettings
 		identifier = PREFIX_CHARACTER .. setting_id
+	end
+	if checkbox then
 		template = "SettingsCheckboxSliderControlTemplate"
+	else
+		template = "SettingsSliderControlTemplate"
 	end
 	local setting =
 		Settings.RegisterAddOnSetting(AutoDeposit.SettingsCategory, identifier, setting_id, db, "number", text, 27)
