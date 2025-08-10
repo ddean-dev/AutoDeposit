@@ -195,9 +195,9 @@ function AutoDeposit:Repair()
 end
 
 function AutoDeposit:DepositReagents()
-	if IsReagentBankUnlocked() and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS) then
+	if C_Bank.DoesBankTypeSupportAutoDeposit(0) and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS) then
 		print("Depositing all reagents")
-		DepositReagentBank()
+		C_Bank.AutoDepositItemsIntoBank(0)
 	end
 end
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
   "workspace.library": [
-    "../vscode-wow-api/LuaScripts/WowDocLoader/Blizzard_APIDocumentation",
-    "../vscode-wow-api/LuaScripts/WowDocLoader/Blizzard_APIDocumentationGenerated/",
-    "../vscode-wow-api/Annotations/"
+    "../../Ketho/vscode-wow-api/LuaScripts/WowDocLoader/Blizzard_APIDocumentation",
+    "../../Ketho/vscode-wow-api/LuaScripts/WowDocLoader/Blizzard_APIDocumentationGenerated/",
+    "../../Ketho/vscode-wow-api/Annotations/"
   ]
 }
