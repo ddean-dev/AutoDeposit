@@ -6,5 +6,6 @@
 ## SavedVariables: AutoDepositSettings
 ## SavedVariablesPerCharacter: AutoDepositCharacterSettings
 ## X-Curse-Project-ID: 1089693
+## X-Wago-ID: nKW1x4NE
 
 main.lua
