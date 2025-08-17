@@ -19,6 +19,7 @@ local WITHDRAW_GOLD = "WithdrawGold"
 local SELL_JUNK = "SellJunk"
 local REPAIR_ALL = "RepairAll"
 local REPAIR_GUILD = "RepairGuild"
+local DEPOSIT_WARBOUND = "DepositWarbound"
 local DEPOSIT_REAGENTS = "DepositReagents"
 
 AutoDeposit = CreateFrame("Frame")
@@ -70,9 +71,17 @@ function AutoDeposit:Init()
 		true
 	)
 	AutoDeposit:AddBooleanSetting(
+		DEPOSIT_WARBOUND,
+		"Automatically Deposit Warbound Items",
+		"Automatically deposits warbound items to the warband bank when opening the bank. Obeys tab filter settings and "
+			.. "the 'Include tradeable reagents' checkbox. Warbound items (and tradeable reagent's) are deposited before the "
+			.. "'Automatically Deposit Reagents' setting is checked and run.",
+		true
+	)
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_REAGENTS,
 		"Automatically Deposit Reagents",
-		"Automatically deposits reagents when opening the bank.",
+		"Automatically deposits reagents to the character bank when opening the bank.",
 		true
 	)
 
@@ -123,6 +132,12 @@ function AutoDeposit:Init()
 		false
 	)
 	AutoDeposit:AddBooleanSetting(
+		DEPOSIT_WARBOUND,
+		"Character Deposit Warbound Items",
+		"A character specific override for  the `Automatically Deposit Warbound Items` setting.",
+		false
+	)
+	AutoDeposit:AddBooleanSetting(
 		DEPOSIT_REAGENTS,
 		"Character Deposit Reagents",
 		"A character specific override for  the `Automatically Deposit Reagents` setting.",
@@ -140,6 +155,7 @@ function AutoDeposit:OnEvent(event, arg1, arg2)
 		self:ClearSlot(arg2)
 	elseif event == BANKFRAME_OPENED then
 		AutoDeposit:NormalizeGold()
+		AutoDeposit:DepositWarbound()
 		AutoDeposit:DepositReagents()
 	end
 end
@@ -194,10 +210,23 @@ function AutoDeposit:Repair()
 	end
 end
 
+function AutoDeposit:DepositWarbound()
+	if
+		C_Bank.DoesBankTypeSupportAutoDeposit(Enum.BankType.Account)
+		and AutoDeposit:GetBooleanSetting(DEPOSIT_WARBOUND)
+	then
+		print("Depositing warbound items")
+		C_Bank.AutoDepositItemsIntoBank(Enum.BankType.Account)
+	end
+end
+
 function AutoDeposit:DepositReagents()
-	if C_Bank.DoesBankTypeSupportAutoDeposit(0) and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS) then
+	if
+		C_Bank.DoesBankTypeSupportAutoDeposit(Enum.BankType.Character)
+		and AutoDeposit:GetBooleanSetting(DEPOSIT_REAGENTS)
+	then
 		print("Depositing all reagents")
-		C_Bank.AutoDepositItemsIntoBank(0)
+		C_Bank.AutoDepositItemsIntoBank(Enum.BankType.Character)
 	end
 end
 
