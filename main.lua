@@ -6,7 +6,6 @@ AutoDepositCharacterSettings = {}
 local ADDON_LOADED = "ADDON_LOADED"
 local MERCHANT_SHOW = "MERCHANT_SHOW"
 local BANKFRAME_OPENED = "BANKFRAME_OPENED"
-local SPELL_PUSHED_TO_ACTIONBAR = "SPELL_PUSHED_TO_ACTIONBAR"
 
 --Settings
 local PREFIX = "AutoDeposit_"
@@ -22,7 +21,7 @@ local REPAIR_GUILD = "RepairGuild"
 local DEPOSIT_WARBOUND = "DepositWarbound"
 local DEPOSIT_REAGENTS = "DepositReagents"
 
-AutoDeposit = CreateFrame("Frame")
+local AutoDeposit = CreateFrame("Frame")
 
 function AutoDeposit:Init()
 	--Account Settings
@@ -151,8 +150,6 @@ function AutoDeposit:OnEvent(event, arg1, arg2)
 	elseif event == MERCHANT_SHOW then
 		self:SellJunk()
 		self:Repair()
-	elseif event == SPELL_PUSHED_TO_ACTIONBAR then
-		self:ClearSlot(arg2)
 	elseif event == BANKFRAME_OPENED then
 		AutoDeposit:NormalizeGold()
 		AutoDeposit:DepositWarbound()

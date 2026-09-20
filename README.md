@@ -7,7 +7,7 @@ Copy the GitHub URL into WoWUp
 ## Building Locally
 - install git modules
 - create `.env` file with your wow addons folder set
-```
-WOW_ADDONS_FOLDER=/mnt/e/BlizzardGames/World\ of\ Warcraft/_retail_/Interface/AddOns
+```bash
+WOW_ADDONS_FOLDER="~/Games/battlenet/drive_c/Program Files (x86)/World of Warcraft/retail/Interface/AddOns/"
 ```
 - run `bash build.sh`

@@ -1,6 +1,6 @@
 ## Title: AutoDeposit
 ## Author: Nibrodooh
-## Interface: 120000
+## Interface: 120100, 120105
 ## Version: @project-version@
 ## DefaultState: enabled
 ## SavedVariables: AutoDepositSettings

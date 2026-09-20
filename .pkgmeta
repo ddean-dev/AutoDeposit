@@ -3,5 +3,6 @@ package-as: AutoDeposit
 ignore:
     - .github
     - .gitignore
+    - .wowluarc.json
     - README.md
-    - build.sh
+    - makefile
